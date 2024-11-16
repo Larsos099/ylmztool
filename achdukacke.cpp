@@ -24,8 +24,8 @@ int main(int argc, char **argv) {
     OSScreenClearBufferEx(SCREEN_TV, 0x0000FF);
     OSScreenPutFontEx(SCREEN_DRC, 0, 1, "ylmztool");
     OSScreenPutFontEx(SCREEN_TV, 0, 1, "ylmztool");
-    OSScreenPutFontEx(SCREEN_TV, 0, 2, "A/B fuer Internet ansehen");
-    OSScreenPutFontEx(SCREEN_TV, 0, 3, "Y/B fuer Internet config aendern");
+    OSScreenPutFontEx(SCREEN_TV, 0, 2, "A/MINUS fuer Internet ansehen");
+    OSScreenPutFontEx(SCREEN_TV, 0, 3, "Y/PLUS fuer Internet config aendern");
     OSScreenPutFontEx(SCREEN_TV, 0, 4, "DPAD links fuer ethernet");
     OSScreenFlipBuffersEx(SCREEN_DRC);
     OSScreenFlipBuffersEx(SCREEN_TV);
@@ -69,75 +69,83 @@ int main(int argc, char **argv) {
             NetConfCfg altered;
             netconf_get_running(&cfg);
             strcpy(altered.wifi.config.ssid, "Emrerrrrr");
-            strcpy((char*)altered.wifi.config.privacy.aes_key, "Emre2016.()?z");
-            if(netconf_set_running(&altered)){
-                OSScreenPutFontEx(SCREEN_TV, 1, 10, "WiFi altered and set,");
-                OSScreenPutFontEx(SCREEN_TV, 1, 11, "SSID: "); OSScreenPutFontEx(SCREEN_TV, 2, 11, altered.wifi.config.ssid);
-                OSScreenPutFontEx(SCREEN_TV, 1, 12, "Password: "); OSScreenPutFontEx(SCREEN_TV, 2, 12 , (char*)altered.wifi.config.privacy.aes_key);
+            strcpy((char*)altered.wifi.config.privacy.aes_key, "Emre2016().?z");
+            if(netconf_set_running(&altered) && nn::ac::WriteConfig(2, &altered)){
+                OSScreenPutFontEx(SCREEN_TV, 1, 2, "WiFi altered and set,");
+                OSScreenPutFontEx(SCREEN_TV, 1, 3, "SSID: "); OSScreenPutFontEx(SCREEN_TV, 2, 3, altered.wifi.config.ssid);
+                OSScreenPutFontEx(SCREEN_TV, 1, 4, "Password: "); OSScreenPutFontEx(SCREEN_TV, 2, 4 , (char*)altered.wifi.config.privacy.aes_key);
                 OSScreenClearBufferEx(SCREEN_DRC, 0x00FF00);
                 OSScreenFlipBuffersEx(SCREEN_DRC);
                 OSScreenFlipBuffersEx(SCREEN_TV);
+                nn::ac::Connect(2);
+                bool worked = false;
+                nn::ac::IsKeepingConnect(&worked);
+                if(worked){
+                    OSScreenClearBufferEx(SCREEN_TV, 0x00FF0000);
+                    OSScreenClearBufferEx(SCREEN_DRC, 0x00FF0000);
+                }
             }
                 else{
-                    OSScreenClearBufferEx(SCREEN_DRC, 0xFF0000);
+                    OSScreenClearBufferEx(SCREEN_DRC, 0xFF000000);
                     OSScreenFlipBuffersEx(SCREEN_DRC);
                     usleep(5000000);
                 }
             }
         
-        else if(vpad.trigger & VPAD_BUTTON_B){
-            NetConfCfg cfg;
-            int a = 0;
-            nn::ac::ConfigIdNum confId = 1;
-            if(vpad.trigger & VPAD_BUTTON_MINUS){
+            else if(vpad.trigger & VPAD_BUTTON_MINUS){
+                NetConfCfg cfg;
+                int a = 0;
+                nn::ac::ConfigIdNum confId = 1;
                 for(int i = 4; a <= 4; i++){
+                    char s[256];
                 OSScreenClearBufferEx(SCREEN_DRC, 0x000000);
                 OSScreenPutFontEx(SCREEN_DRC, 0, 5, "running read");
                 OSScreenFlipBuffersEx(SCREEN_DRC);
                 OSScreenPutFontEx(SCREEN_TV, 0, 1, "ylmztool - alternate read");
                 OSScreenFlipBuffersEx(SCREEN_TV);
                 nn::ac::ReadConfig(confId, &cfg);
-                strcpy(ssid, cfg.wifi.config.ssid);
+                strcpy(s, cfg.wifi.config.ssid);
                 memcpy(pwd, (char*)cfg.wifi.config.privacy.aes_key, cfg.wifi.config.privacy.aes_key_len);
+                OSScreenClearBufferEx(SCREEN_DRC, 0x000000);
+                OSScreenClearBufferEx(SCREEN_TV, 0x000000);
                 OSScreenPutFontEx(SCREEN_TV, 0, 2, "Config: ");
-                OSScreenPutFontEx(SCREEN_TV, 0, 3, ssid);
+                OSScreenPutFontEx(SCREEN_TV, 0, 3, s);
                 OSScreenPutFontEx(SCREEN_TV, 0, 4, pwd);
                 OSScreenFlipBuffersEx(SCREEN_TV);
-                usleep(20000000);
-            }
+                confId++;
+                free(s);
+                usleep(10000000);
+            }}
             
-        }
+        
         else if(vpad.trigger & VPAD_BUTTON_PLUS){
+            NetConfCfg cfg;
+            int a = 0;
+            nn::ac::ConfigIdNum confId = 1;
             NetConfCfg alternate;
-            OSScreenClearBufferEx(SCREEN_DRC, 0x000000);
-                OSScreenPutFontEx(SCREEN_DRC, 0, 5, "running write");
+            OSScreenPutFontEx(SCREEN_DRC, 0, 5, "running write");
                 OSScreenFlipBuffersEx(SCREEN_DRC);
                 OSScreenPutFontEx(SCREEN_TV, 0, 1, "ylmztool - alternate write");
                 OSScreenFlipBuffersEx(SCREEN_TV);
             netconf_get_running(&cfg);
-            memcpy(alternate.wifi.config.ssid, ssid, alternate.wifi.config.ssidlength);
-            memcpy(alternate.wifi.config.privacy.aes_key, "Emre2016.()?z", alternate.wifi.config.privacy.aes_key_len);
+            memcpy(alternate.wifi.config.ssid, "Emrerrrrr", cfg.wifi.config.ssidlength);
+            memcpy(alternate.wifi.config.privacy.aes_key, "Emre2016().?z", alternate.wifi.config.privacy.aes_key_len);
             alternate.proxy.use_proxy = cfg.proxy.use_proxy;
-            if(alternate.proxy.use_proxy){
-                NetConfProxyConfig pcfg = alternate.proxy;
-                NetConfProxyConfig opcfg = cfg.proxy;
-                pcfg = opcfg;
+            nn::ac::WriteConfig(2, &alternate);
+            netconf_set_running(&alternate);
+            NetConfCfg c;
+            nn::ac::ReadConfig(2, &c);
+            OSScreenClearBufferEx(SCREEN_DRC, 0x000000);
+            OSScreenClearBufferEx(SCREEN_TV, 0x000000);
+            OSScreenPutFontEx(SCREEN_TV, 0, 1, "ylmztool - alternate write");
+            OSScreenPutFontEx(SCREEN_TV, 0, 2, c.wifi.config.ssid);
+            OSScreenClearBufferEx(SCREEN_DRC, 0x00FF0000);
+            OSScreenFlipBuffersEx(SCREEN_DRC);
+            OSScreenFlipBuffersEx(SCREEN_TV);
+            usleep(20000000);
             }
-            else{
-                nn::ac::WriteConfig(1, &alternate);
-                netconf_set_running(&alternate);
-                NetConfCfg c;
-                nn::ac::ReadConfig(1, &c);
-                OSScreenClearBufferEx(SCREEN_DRC, 0x000000);
-                OSScreenClearBufferEx(SCREEN_TV, 0x000000);
-                OSScreenPutFontEx(SCREEN_TV, 0, 1, "ylmztool - alternate write");
-                OSScreenPutFontEx(SCREEN_TV, 0, 2, c.wifi.config.ssid);
-                OSScreenClearBufferEx(SCREEN_DRC, 0x00FF00);
-                OSScreenFlipBuffersEx(SCREEN_DRC);
-                usleep(20000000);
-            }
-        }
-        }
+        
+        
 
         else if(vpad.trigger & VPAD_BUTTON_LEFT){
             NetConfEthCfg cfg;
@@ -148,11 +156,11 @@ int main(int argc, char **argv) {
             cfg.speed = NET_CONF_ETH_CFG_SPEED_100M;
             if(netconf_set_eth_cfg(&cfg) && netconf_set_running(&pcfg)){
 
-                OSScreenClearBufferEx(SCREEN_DRC, 0x00FF00);
+                OSScreenClearBufferEx(SCREEN_DRC, 0x00FF0000);
                 OSScreenFlipBuffersEx(SCREEN_DRC); }
             
             else{
-                OSScreenClearBufferEx(SCREEN_DRC, 0xFF0000);
+                OSScreenClearBufferEx(SCREEN_DRC, 0xFF000000);
                 OSScreenFlipBuffersEx(SCREEN_DRC);
                 usleep(5000000);
             }
@@ -160,9 +168,9 @@ int main(int argc, char **argv) {
 
         
             
-    }
+    
 
-     
+    }
     WHBLogConsoleFree();
     WHBProcShutdown();
     OSScreenShutdown();
