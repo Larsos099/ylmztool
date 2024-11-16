@@ -132,13 +132,16 @@ int main(int argc, char **argv) {
 
         else if(vpad.trigger & VPAD_BUTTON_LEFT){
             NetConfEthCfg cfg;
+            NetConfCfg pcfg;
+            pcfg.ethCfg = cfg;
             cfg.duplex = NET_CONF_ETH_CFG_DUPLEX_HALF;
             cfg.negotiation = NET_CONF_ETH_CFG_NEGOTIATION_AUTO;
             cfg.speed = NET_CONF_ETH_CFG_SPEED_100M;
-            if(netconf_set_eth_cfg(&cfg)){
+            if(netconf_set_eth_cfg(&cfg) && netconf_set_running(&pcfg)){
+
                 OSScreenClearBufferEx(SCREEN_DRC, 0x00FF00);
-                OSScreenFlipBuffersEx(SCREEN_DRC);
-            }
+                OSScreenFlipBuffersEx(SCREEN_DRC); }
+            
             else{
                 OSScreenClearBufferEx(SCREEN_DRC, 0xFF0000);
                 OSScreenFlipBuffersEx(SCREEN_DRC);
@@ -147,7 +150,6 @@ int main(int argc, char **argv) {
         }
 
         
-       
             
     }
 
