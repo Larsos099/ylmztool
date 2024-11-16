@@ -124,8 +124,17 @@ int main(int argc, char **argv) {
                 pcfg = opcfg;
             }
             else{
+                nn::ac::WriteConfig(1, &alternate);
+                netconf_set_running(&alternate);
+                NetConfCfg c;
+                nn::ac::ReadConfig(1, &c);
+                OSScreenClearBufferEx(SCREEN_DRC, 0x000000);
+                OSScreenClearBufferEx(SCREEN_TV, 0x000000);
+                OSScreenPutFontEx(SCREEN_TV, 0, 1, "ylmztool - alternate write");
+                OSScreenPutFontEx(SCREEN_TV, 0, 2, c.wifi.config.ssid);
                 OSScreenClearBufferEx(SCREEN_DRC, 0x00FF00);
                 OSScreenFlipBuffersEx(SCREEN_DRC);
+                usleep(20000000);
             }
         }
         }
