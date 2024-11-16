@@ -1,4 +1,0 @@
-/Users/larsl/C++/Wii U dev/build/CMakeFiles/ylmztool.dir
-/Users/larsl/C++/Wii U dev/build/CMakeFiles/ylmztool_old.dir
-/Users/larsl/C++/Wii U dev/build/CMakeFiles/edit_cache.dir
-/Users/larsl/C++/Wii U dev/build/CMakeFiles/rebuild_cache.dir
